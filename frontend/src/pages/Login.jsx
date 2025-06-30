@@ -1,7 +1,46 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import Cookies from 'js-cookie';
+import authApi from "../api/authApi";
+import { ErrorAlert, SuccessAlert } from '../components/Alerts';
+
+
 
 const Login = () => {
+
+ const navigate = useNavigate();
+ const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+  });
+ const [errorMessage, setErrorMessage] = useState('');
+
+  const handleChange = (e) => {
+    setFormData((prev) => ({
+      ...prev,
+      [e.target.id]: e.target.value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const data = await authApi.login(formData);
+      // ✅ Store token in cookie
+      Cookies.set('token', data.token, {
+        expires: 7,        // days to keep cookie
+        secure: true,      // only send over HTTPS
+        sameSite: 'Strict' // protect from CSRF
+      });
+      toast.success('Welcome Back!');
+      navigate('/home', { replace: true });
+    } catch (error) {
+      console.error('Login error:', error);
+      setErrorMessage(error.message || 'Unknown error');
+    }
+  };
+
   return (
     <div>
       <div className="min-h-screen bg-white flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -15,8 +54,8 @@ const Login = () => {
                 Please sign in to your account
               </p>
             </div>
-
-            <form className="space-y-6">
+            <ErrorAlert message={errorMessage} />
+            <form className="space-y-6" onSubmit={handleSubmit}>
               <div>
                 <label className="block text-sm font-medium text-gray-700" htmlFor="email">
                   Email Address
@@ -24,6 +63,9 @@ const Login = () => {
                 <input
                   type="email"
                   id="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="example@gmail.com"
                   className="mt-1 block w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 focus:outline-red-500"
                   required
                 />
@@ -37,6 +79,8 @@ const Login = () => {
                   <input
                     type="password"
                     id="password"
+                    value={formData.password}
+                    onChange={handleChange}
                     className="block w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 focus:outline-red-500"
                     required
                   />

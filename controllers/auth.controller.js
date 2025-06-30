@@ -1,6 +1,7 @@
-import db from '../config/db.js'; // 👈 this was missing
+import fs from 'fs';
+import path from 'path';
 
-import { register, login } from '../services/auth.service.js';
+import {register, login, getUserProfile, updateUserProfile} from '../services/auth.service.js';
 
 export const registerUser = async (req, res) => {
   try {
@@ -24,21 +25,45 @@ export const loginUser = async (req, res) => {
 
 export const getProfile = async (req, res) => {
   try {
-    const { userId } = req.user;
-    const [rows] = await db.query(
-      'SELECT id, name, email, created_at FROM users WHERE id = ?',
-      [userId]
-    );
-    if (!rows.length) return res.status(404).json({ message: 'User not found' });
-    res.json({
-      status: 'success',
-      data: rows[0],
+    const userId = req.user.userId; // authenticate middleware sets req.user
+    const result = await getUserProfile(userId);
+    res.json(result);
+  } catch (error) {
+    console.error('❌ Error fetching profile:', error);
+    res.status(error.statusCode || 500).json({
+      status: 'error',
+      message: error.message || 'Something went wrong',
     });
-  } catch (err) {
-    console.error('❌ Error fetching profile:', err);
-    res.status(500).json({ message: 'Server error' });
   }
 };
 
 
+export const updateProfile = async (req, res) => {
+  const userId = req.user.userId;
+  const { name, bio} = req.body;
+  const profileImage = req.file ? req.file.filename : null;
 
+  try {
+    const result = await updateUserProfile(userId, { name, bio }, profileImage);
+    res.json(result);
+
+  } catch (error) {
+    console.error('❌ Update profile error:', error);
+
+    if (profileImage) {
+      const filePath = path.resolve('uploads/profile-images', profileImage);
+      fs.unlink(filePath, (err) => {
+        if (err) {
+          console.error(`❌ Failed to delete orphan file ${filePath}:`, err);
+        } else {
+          console.log(`🗑️ Deleted orphan file: ${filePath}`);
+        }
+      });
+    }
+
+    res.status(error.statusCode || 500).json({
+      status: 'error',
+      message: error.message || 'Something went wrong',
+    });
+  }
+};
