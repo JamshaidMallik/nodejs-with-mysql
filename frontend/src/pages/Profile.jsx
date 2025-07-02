@@ -6,24 +6,21 @@ import Swal from 'sweetalert2';
 import authApi from "../api/authApi";
 import { getProfileImageUrl } from '../utils/AppUtils';
 
-
-
 const Profile = () => {
-const navigate = useNavigate();
+  const navigate = useNavigate();
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const [newName, setNewName] = useState('');
   const [newBio, setNewBio] = useState('');
-
-  const [selectedImage, setSelectedImage] = useState(null); // new image file
-  const [previewImage, setPreviewImage] = useState(null);   // preview URL
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [previewImage, setPreviewImage] = useState(null);
 
   const handleLogout = () => {
     Swal.fire({
       title: "Are you sure?",
-      text: "You will be logged out of your account.",
+      text: "You will be logged out.",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#d33",
@@ -55,18 +52,12 @@ const navigate = useNavigate();
   };
 
   useEffect(() => {
-    const loadProfile = () => {
-      fetchProfile().catch((err) => {
-        console.error("Unhandled fetchProfile error:", err);
-      });
-    };
-    loadProfile();
+    fetchProfile();
   }, []);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     setSelectedImage(file);
     setPreviewImage(URL.createObjectURL(file));
   };
@@ -84,114 +75,96 @@ const navigate = useNavigate();
 
     try {
       await authApi.updateProfile(formData);
-      toast.success("Profile updated successfully!");
+      toast.success("Profile updated!");
       await fetchProfile();
       setSelectedImage(null);
       setPreviewImage(null);
     } catch (err) {
       console.error("Profile update error:", err);
-      toast.error(err.message || "Something went wrong");
+      toast.error(err.message || "Update failed");
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-200 flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-lg bg-white rounded-3xl shadow-xl p-8">
-        {loading && <p className="text-center text-gray-600 animate-pulse">Loading profile...</p>}
-        {error && <p className="text-center text-red-600">{error}</p>}
+      <div className="w-full min-h-screen flex items-center justify-center bg-gradient-to-r from-purple-600 via-pink-500 to-red-500 py-6">
+        <div className="w-full max-w-4xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row mx-4">
+          {/* Profile Header */}
+          <div className="flex-1 bg-gradient-to-b from-purple-700 to-pink-600 text-white flex flex-col justify-center items-center p-6 sm:p-8">
+            {loading && <p className="text-center text-white animate-pulse">Loading...</p>}
+            {error && <p className="text-center text-red-200">{error}</p>}
 
-        {!loading && !error && userData && (
-          <div className="space-y-8">
-            <div className="flex flex-col items-center space-y-4">
-              <img
-                src={
-                  previewImage ||
-                  (userData.profile_image
-                    ? `${getProfileImageUrl(userData.profile_image)}`
-                    : 'https://placehold.co/600x400')
-                }
-                alt="Profile"
-                className="w-32 h-32 rounded-full object-cover border-4 border-gray-200 shadow-md transition-transform duration-300 hover:scale-105"
-              />
-              <div className="flex flex-col items-center space-y-1">
-                <h2 className="text-2xl font-semibold text-gray-800">{userData.name}</h2>
-                <p className="text-sm text-gray-500">
-                  Joined:{' '}
-                  {new Date(userData.created_at).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                </p>
-                <p className="text-sm text-gray-600">{userData.email}</p>
-              </div>
-            </div>
-
-            <div className="flex justify-center">
-              <label className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white text-sm font-medium rounded-md shadow hover:from-red-600 hover:to-red-700 cursor-pointer transition-colors duration-300">
-                <svg
-                  className="w-5 h-5 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 4v16h16V4H4zm8 14v-4m0 0l-2 2m2-2l2 2m-2-2V8"
+            {!loading && !error && userData && (
+                <>
+                  <img
+                      src={previewImage || (userData.profile_image ? getProfileImageUrl(userData.profile_image) : 'https://placehold.co/600x400')}
+                      alt="Profile"
+                      className="w-32 h-32 sm:w-40 sm:h-40 rounded-full object-cover border-4 border-white shadow-xl transform hover:scale-110 transition-transform duration-300 mb-4"
                   />
-                </svg>
-                Select Profile Image
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="hidden"
-                />
-              </label>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-              <input
-                type="text"
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500 transition-shadow duration-200"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Bio</label>
-              <textarea
-                rows={3}
-                value={newBio}
-                onChange={(e) => setNewBio(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500 transition-shadow duration-200 resize-none"
-                placeholder="Tell something about yourself..."
-              ></textarea>
-            </div>
-
-            <button
-              onClick={handleUpdate}
-              className="w-full py-3 rounded-lg bg-red-600 text-white font-semibold shadow hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-300 transition-all duration-200"
-            >
-              Save Changes
-            </button>
-
-            <button
-              onClick={handleLogout}
-              className="w-full py-3 px-2 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-gray-700 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-            >
-              Logout
-            </button>
+                  <h2 className="text-2xl sm:text-3xl font-bold text-center">{userData.name}</h2>
+                  <p className="text-xs sm:text-sm text-white/80 mt-1 text-center break-words">{userData.email}</p>
+                  <p className="text-xs mt-1 text-center">
+                    Joined {new Date(userData.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                  </p>
+                </>
+            )}
           </div>
-        )}
+
+          {/* Profile Form */}
+          {!loading && !error && userData && (
+              <div className="flex-1 p-6 sm:p-8 space-y-6 flex flex-col justify-center bg-white">
+                <div className="flex justify-center">
+                  <label className="inline-flex items-center px-4 py-2 bg-purple-700 text-white rounded-md shadow hover:bg-purple-800 cursor-pointer transition duration-200">
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v16h16V4H4zm8 14v-4m0 0l-2 2m2-2l2 2m-2-2V8" />
+                    </svg>
+                    Change Profile Image
+                    <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+                  </label>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                  <input
+                      type="text"
+                      value={newName}
+                      onChange={(e) => setNewName(e.target.value)}
+                      className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-shadow duration-200"
+                      required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Bio</label>
+                  <textarea
+                      rows={3}
+                      value={newBio}
+                      onChange={(e) => setNewBio(e.target.value)}
+                      className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-shadow duration-200 resize-none"
+                      placeholder="Tell something about yourself..."
+                  ></textarea>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <button
+                      onClick={handleUpdate}
+                      className="flex-1 py-3 rounded-lg bg-purple-700 text-white font-semibold shadow hover:bg-purple-800 transition-all duration-200"
+                  >
+                    Save Changes
+                  </button>
+
+                  <button
+                      onClick={handleLogout}
+                      className="flex-1 py-3 rounded-lg border border-gray-300 text-gray-700 font-semibold shadow hover:bg-gray-100 transition-all duration-200"
+                  >
+                    Logout
+                  </button>
+                </div>
+              </div>
+          )}
+        </div>
       </div>
-    </div>
   );
+
 };
 
 export default Profile;

@@ -21,6 +21,25 @@ const postApi = {
         const data = await response.json();
         return data.posts;
     },
+    getMyPosts: async () => {
+        const response = await fetch(`${API_URL}/my_post`, {
+            headers: { Authorization: `Bearer ${getToken()}` },
+        });
+        if (!response.ok) throw new Error('Failed to fetch your posts');
+        const data = await response.json();
+        return data.posts;
+    },
+    deletePost: async (postId) => {
+        const response = await fetch(`${API_URL}/${postId}`, {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${getToken()}` },
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Failed to delete post');
+        }
+        return response.json();
+    },
 };
 
 export default postApi;

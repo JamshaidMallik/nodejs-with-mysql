@@ -114,7 +114,6 @@ export const getMyPostsService = async (userId) => {
 export const getAllPostsService = async () => {
     // Fetch all posts ordered by latest first
     const [posts] = await db.query('SELECT * FROM posts ORDER BY created_at DESC');
-
     if (!posts.length) {
         throw {
             statusCode: 404,

@@ -47,7 +47,6 @@ export const getMyPosts = async (req, res) => {
     const userId = req.user.userId;
     try {
         const result = await getMyPostsService(userId);
-        console.log(`🔥 fetching all posts: ${result.data}`);
         res.status(200).json(result);
     } catch (e) {
         console.error('❌ Get all posts error:', e);
