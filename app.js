@@ -4,6 +4,7 @@ import cors from 'cors';
 import express from 'express';
 import authRoutes from './routes/auth.routes.js';
 import postRoutes from './routes/post.routes.js';
+import peopleRoutes from './routes/people.routes.js';
 import './config/db.js'; 
 
 
@@ -14,6 +15,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static('uploads'));
 app.use('/api/auth', authRoutes);
 app.use('/api/post', postRoutes);
+app.use('/api/people', peopleRoutes);
 
 app.listen(3000, () => {
   console.log('🚀 Server running on http://localhost:3000');
