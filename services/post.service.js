@@ -3,7 +3,7 @@ import Joi from 'joi';
 import path from "path";
 import fs from "fs";
 
-export const createPostService = async (userId, { title, description }, postImage) => {
+export const createPostService = async (userId, { title, description }, postImage, videoPath) => {
     // Validate input
     const schema = Joi.object({
         title: Joi.string().min(5).required().messages({
@@ -18,10 +18,9 @@ export const createPostService = async (userId, { title, description }, postImag
 
     // Insert new post into DB
     const [result] = await db.query(
-        'INSERT INTO posts (user_id, title, description, image) VALUES (?, ?, ?, ?)',
-        [userId, title, description, postImage]
+        'INSERT INTO posts (user_id, title, description, image, video) VALUES (?, ?, ?, ?, ?)',
+        [userId, title, description, postImage, videoPath]
     );
-
     return {
         status: 'success',
         message: 'Post created successfully',
